@@ -8,7 +8,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.fuudyapp.ui.theme.HomeScreen
 
-
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
@@ -17,5 +16,6 @@ fun AppNavigation() {
         composable("signup") { SignUpScreen(navController) }
         composable("home") { HomeScreen(navController) }
         composable("recipe_list") { RecipeListScreen(navController) }
+        composable("profile") { ProfileScreen(navController) }
     }
 }

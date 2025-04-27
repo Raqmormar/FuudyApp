@@ -109,16 +109,6 @@ fun SignUpScreen(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-
-            Button(
-                onClick = { navController.navigate("home") },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF355E37))
-            ) {
-                Text("Sign Up")
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
             TextButton(onClick = { navController.navigate("Login") }) {
                 Text("Already have an account? Login", color = Color.White)
             }

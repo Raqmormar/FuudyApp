@@ -29,8 +29,8 @@ fun LoginScreen(navController: NavHostController) {
     val keyboardController = LocalSoftwareKeyboardController.current
 
     // Estado de los campos de texto
-    var email by remember { mutableStateOf("") }  // Asegúrate de que esté un string vacío para el email
-    var password by remember { mutableStateOf("") }  // Lo mismo para la contraseña
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
 
     Box(
         modifier = Modifier
@@ -53,6 +53,16 @@ fun LoginScreen(navController: NavHostController) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
+
+            Image(
+                painter = painterResource( id = R.drawable.f_png),
+                contentDescription = "Logo App",
+                modifier = Modifier
+                    .size(300.dp)
+                    .padding(bottom = 16.dp),
+                contentScale = ContentScale.Fit
+            )
+
             Text(
                 text = "WELCOME!",
                 fontWeight = FontWeight.Bold,
@@ -70,11 +80,11 @@ fun LoginScreen(navController: NavHostController) {
                 singleLine = true,
                 modifier = Modifier
                     .fillMaxWidth(0.8f)
-                    .clip(RoundedCornerShape(50.dp)), // Hace el TextField redondeado
+                    .clip(RoundedCornerShape(50.dp)),
                 colors = TextFieldDefaults.textFieldColors(
                     containerColor = Color.White.copy(alpha = 0.3f), // Fondo con transparencia
-                    focusedIndicatorColor = Color.Transparent, // Sin indicador de foco
-                    unfocusedIndicatorColor = Color.Transparent // Sin indicador al perder foco
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
                 )
             )
 
@@ -88,11 +98,11 @@ fun LoginScreen(navController: NavHostController) {
                 singleLine = true,
                 modifier = Modifier
                     .fillMaxWidth(0.8f)
-                    .clip(RoundedCornerShape(50.dp)), // Hace el TextField redondeado
+                    .clip(RoundedCornerShape(50.dp)),
                 colors = TextFieldDefaults.textFieldColors(
                     containerColor = Color.White.copy(alpha = 0.3f), // Fondo con transparencia
-                    focusedIndicatorColor = Color.Transparent, // Sin indicador de foco
-                    unfocusedIndicatorColor = Color.Transparent // Sin indicador al perder foco
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
                 )
             )
 

@@ -1,14 +1,18 @@
 package com.example.fuudyapp
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -16,9 +20,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Search
@@ -27,10 +38,10 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,329 +50,594 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 
-// Mantenemos tu data class Recipe original
+// Modelo de datos mejorado para las recetas
 data class Recipe(
+    val id: Int = 0,
     val name: String,
     val description: String,
+    val category: String = "Breakfast",
     val ingredients: List<String>,
+    val prepTime: String = "20 min",
+    val difficulty: String = "Easy",
+    val isFavorite: Boolean = false,
     val imageResource: Int
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecipeListScreen(navController: NavHostController) {
-    // Define los colores principales de la aplicación
+    // Colores de la aplicación
     val primaryGreen = Color(0xFF355E37)
+    val lightGreen = Color(0xFFEDF1ED)
+    val accentOrange = Color(0xFFF6913E)
 
-    // Estado para el campo de búsqueda
+    // Estados
     var searchQuery by remember { mutableStateOf("") }
-
-    // Lista de recetas (usando tus datos originales)
-    val recipes = listOf(
-        Recipe(
-            name = "Banana Pancake",
-            description = "Fluffy, homemade banana pancakes.",
-            ingredients = listOf("Flour", "Banana", "Cinnamon", "Eggs", "Milk"),
-            imageResource = R.drawable.pancake
-        ),
-        Recipe(
-            name = "Tuna Poke",
-            description = "Hawaiian salad of fresh tuna steak cubes tossed with soy sauce, sesame oil, and green onions.",
-            ingredients = listOf("Tuna", "Soy Sauce", "Sesame Oil", "Green Onions", "Toasted Sesame Seeds"),
-            imageResource = R.drawable.pok_
-        ),
-        Recipe(
-            name = "Avocado Toast",
-            description = "Protein avocado toast for energetic breakfast.",
-            ingredients = listOf("Eggs", "Gluten free bread", "Avocado"),
-            imageResource = R.drawable.toste
-        ),
-        Recipe(
-            name = "Fruits Bowl",
-            description = "Bowl yogurt with berries.",
-            ingredients = listOf("Kéfir or natural yogurt", "berries", "oat"),
-            imageResource = R.drawable.yogurt
-        )
-    )
-
-    // Categorías para los filtros
-    val categories = listOf("All", "Breakfast", "Lunch", "Dinner", "Snacks")
     var selectedCategory by remember { mutableStateOf("All") }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = "Recipes",
+    // Datos de ejemplo mejorados
+    val categories = listOf("All", "Breakfast", "Lunch", "Dinner", "Desserts", "Healthy")
+    val recipes = remember {
+        listOf(
+            Recipe(
+                id = 1,
+                name = "Banana Pancakes",
+                description = "Fluffy, homemade banana pancakes with maple syrup and fresh berries.",
+                category = "Breakfast",
+                ingredients = listOf("Flour", "Banana", "Cinnamon", "Eggs", "Milk"),
+                prepTime = "15 min",
+                difficulty = "Easy",
+                imageResource = R.drawable.pancake
+            ),
+            Recipe(
+                id = 2,
+                name = "Tuna Poke Bowl",
+                description = "Fresh tuna cubes with avocado, rice, edamame and ponzu sauce.",
+                category = "Lunch",
+                ingredients = listOf("Tuna", "Soy Sauce", "Sesame Oil", "Green Onions", "Rice"),
+                prepTime = "25 min",
+                difficulty = "Medium",
+                imageResource = R.drawable.pok_
+            ),
+            Recipe(
+                id = 3,
+                name = "Avocado Toast",
+                description = "Protein-packed breakfast with avocado, poached eggs and whole grain bread.",
+                category = "Breakfast",
+                ingredients = listOf("Eggs", "Gluten-free bread", "Avocado", "Cherry tomatoes"),
+                prepTime = "10 min",
+                difficulty = "Easy",
+                imageResource = R.drawable.toste
+            ),
+            Recipe(
+                id = 4,
+                name = "Berry Yogurt Bowl",
+                description = "Greek yogurt with fresh berries, honey and homemade granola.",
+                category = "Breakfast",
+                ingredients = listOf("Greek yogurt", "Mixed berries", "Honey", "Granola"),
+                prepTime = "5 min",
+                difficulty = "Easy",
+                imageResource = R.drawable.yogurt
+            )
+        )
+    }
+
+    // Filtrar recetas por categoría y búsqueda
+    val filteredRecipes = recipes.filter { recipe ->
+        (selectedCategory == "All" || recipe.category == selectedCategory) &&
+                (searchQuery.isEmpty() || recipe.name.contains(searchQuery, ignoreCase = true) ||
+                        recipe.description.contains(searchQuery, ignoreCase = true))
+    }
+
+    // UI principal
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color = Color.White)
+    ) {
+        // Fondo con gradiente sutil
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            lightGreen.copy(alpha = 0.3f),
+                            Color.White
+                        )
+                    )
+                )
+        )
+
+        // Contenido principal
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 16.dp)
+        ) {
+            // Barra superior con título y botón de retroceso
+            TopBar(
+                title = "Discover Recipes",
                 onBackClick = { navController.navigateUp() }
             )
-        },
-        bottomBar = {
+
+            // Barra de búsqueda
+            SearchBar(
+                query = searchQuery,
+                onQueryChange = { searchQuery = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                primaryColor = primaryGreen
+            )
+
+            // Categorías
+            CategorySelector(
+                categories = categories,
+                selectedCategory = selectedCategory,
+                onCategorySelected = { selectedCategory = it },
+                primaryGreen = primaryGreen,
+                accentColor = accentOrange
+            )
+
+            // Lista de recetas
+            if (filteredRecipes.isEmpty()) {
+                EmptyRecipeList(query = searchQuery)
+            } else {
+                RecipeGrid(
+                    recipes = filteredRecipes,
+                    onClick = { recipe ->
+                        // AQUÍ ESTÁ EL CAMBIO: Navegar a la pantalla de detalle con el ID
+                        navController.navigate("recipe_detail/${recipe.id}")
+                    },
+                    primaryGreen = primaryGreen,
+                    accentColor = accentOrange
+                )
+            }
+        }
+
+        // Barra de navegación
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .shadow(elevation = 8.dp)
+                .background(Color.White)
+        ) {
             BottomNavBar(
                 navController = navController,
                 primaryGreen = primaryGreen
             )
         }
-    ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            // Imagen de fondo
-            Image(
-                painter = painterResource(id = R.drawable.wasa___avakado_), // Reemplaza con tu imagen de fondo
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop,
-                alpha = 0.15f // Ajusta la transparencia según necesites
-            )
-
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp)
-            ) {
-                // Search bar
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    placeholder = { Text("Search recipes") },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Outlined.Search,
-                            contentDescription = "Search",
-                            tint = primaryGreen
-                        )
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp)
-                        .clip(RoundedCornerShape(50.dp)),
-                    shape = RoundedCornerShape(50.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedBorderColor = primaryGreen.copy(alpha = 0.3f),
-                        focusedBorderColor = primaryGreen
-                    )
-                )
-
-                // Categories
-                Text(
-                    text = "Categories",
-                    style = TextStyle(
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.Black
-                    ),
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-
-                // Category chips
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    categories.forEach { category ->
-                        CategoryChip(
-                            name = category,
-                            isSelected = category == selectedCategory,
-                            primaryGreen = primaryGreen,
-                            onClick = { selectedCategory = category }
-                        )
-                    }
-                }
-
-                // Recipe list
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    items(recipes.size) { index ->
-                        EnhancedRecipeCard(
-                            recipe = recipes[index],
-                            onClick = {
-                                // Aquí puedes navegar a la pantalla de detalle de receta
-                                // navController.navigate("recipe_detail/${index}")
-                            }
-                        )
-                    }
-
-                    // Agregar un espacio al final para mejorar la experiencia de desplazamiento
-                    item {
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
-                }
-            }
-        }
     }
 }
 
 @Composable
-private fun TopAppBar(
+private fun TopBar(
     title: String,
     onBackClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp)
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(
-            onClick = onBackClick
+            onClick = onBackClick,
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(Color.White)
         ) {
             Icon(
                 imageVector = Icons.Default.ArrowBack,
                 contentDescription = "Back",
-                tint = Color(0xFF355E37)
+                tint = Color(0xFF355E37),
+                modifier = Modifier.size(20.dp)
             )
         }
 
         Text(
             text = title,
             style = TextStyle(
-                fontSize = 20.sp,
+                fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF355E37)
-            )
+            ),
+            modifier = Modifier.padding(start = 16.dp)
         )
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CategoryChip(
-    name: String,
-    isSelected: Boolean,
+private fun SearchBar(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    primaryColor: Color
+) {
+    TextField(
+        value = query,
+        onValueChange = onQueryChange,
+        placeholder = {
+            Text(
+                "Search healthy recipes...",
+                style = TextStyle(color = Color.Gray, fontSize = 14.sp)
+            )
+        },
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Outlined.Search,
+                contentDescription = "Search",
+                tint = primaryColor
+            )
+        },
+        modifier = modifier
+            .clip(RoundedCornerShape(50.dp)),
+        colors = TextFieldDefaults.textFieldColors(
+            containerColor = Color.White,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            cursorColor = primaryColor
+        ),
+        singleLine = true,
+        textStyle = TextStyle(fontSize = 14.sp)
+    )
+}
+
+@Composable
+private fun CategorySelector(
+    categories: List<String>,
+    selectedCategory: String,
+    onCategorySelected: (String) -> Unit,
     primaryGreen: Color,
-    onClick: () -> Unit
+    accentColor: Color
 ) {
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(50.dp))
-            .background(
-                if (isSelected) primaryGreen else Color.White
-            )
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        contentAlignment = Alignment.Center
+    LazyRow(
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text(
-            text = name,
-            color = if (isSelected) Color.White else Color.Black,
-            style = TextStyle(
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium
+        items(categories) { category ->
+            CategoryPill(
+                category = category,
+                isSelected = category == selectedCategory,
+                onClick = { onCategorySelected(category) },
+                primaryColor = primaryGreen,
+                accentColor = accentColor
             )
-        )
+        }
     }
 }
 
 @Composable
-private fun EnhancedRecipeCard(
-    recipe: Recipe,
-    onClick: () -> Unit
+private fun CategoryPill(
+    category: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    primaryColor: Color,
+    accentColor: Color
 ) {
+    val backgroundColor = if (isSelected) primaryColor else Color.White
+    val textColor = if (isSelected) Color.White else Color.DarkGray
+    val shadowElevation = if (isSelected) 2.dp else 1.dp
+
+    Card(
+        modifier = Modifier
+            .shadow(shadowElevation, RoundedCornerShape(50.dp))
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(50.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = backgroundColor
+        )
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            if (isSelected && category != "All") {
+                Icon(
+                    painter = painterResource(id = R.drawable.f_png), // Reemplazar con icono relevante
+                    contentDescription = null,
+                    tint = if (category == "Healthy") accentColor else Color.White,
+                    modifier = Modifier
+                        .size(16.dp)
+                        .padding(end = 4.dp)
+                )
+            }
+
+            Text(
+                text = category,
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                    color = textColor
+                )
+            )
+        }
+    }
+}
+
+@Composable
+private fun RecipeGrid(
+    recipes: List<Recipe>,
+    onClick: (Recipe) -> Unit,
+    primaryGreen: Color,
+    accentColor: Color
+) {
+    LazyColumn(
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        items(recipes.size) { index ->
+            ModernRecipeCard(
+                recipe = recipes[index],
+                onClick = { onClick(recipes[index]) }, // Llama a la función onClick con la receta
+                primaryColor = primaryGreen,
+                accentColor = accentColor
+            )
+        }
+
+        // Espacio extra para evitar que el contenido quede bajo la barra de navegación
+        item {
+            Spacer(modifier = Modifier.height(60.dp))
+        }
+    }
+}
+
+@Composable
+private fun ModernRecipeCard(
+    recipe: Recipe,
+    onClick: () -> Unit,
+    primaryColor: Color,
+    accentColor: Color
+) {
+    var isFavorite by remember { mutableStateOf(recipe.isFavorite) }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 4.dp
-        ),
+            .shadow(4.dp, RoundedCornerShape(20.dp))
+            .clickable(onClick = onClick), // Este onClick llamará a la función que navega a la pantalla de detalle
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         )
     ) {
+        // Layout
         Column {
-            // Imagen de la receta
-            Image(
-                painter = painterResource(id = recipe.imageResource),
-                contentDescription = recipe.name,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp)
-            )
-
-            // Información de la receta
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
+            // Imagen con overlay para título y botón de favorito
+            Box(
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = recipe.name,
-                        style = TextStyle(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp,
-                            color = Color(0xFF355E37)
+                // Imagen
+                Image(
+                    painter = painterResource(id = recipe.imageResource),
+                    contentDescription = recipe.name,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                )
+
+                // Gradiente oscuro en la parte inferior para mejorar legibilidad
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Transparent,
+                                    Color.Black.copy(alpha = 0.6f)
+                                ),
+                                startY = 100f
+                            )
                         )
+                )
+
+                Text(
+                    text = recipe.name,
+                    style = TextStyle(
+                        color = Color.White,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold
+                    ),
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(16.dp)
+                )
+
+                // Botón de favorito
+                IconButton(
+                    onClick = { isFavorite = !isFavorite },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.7f))
+                ) {
+                    Icon(
+                        imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                        contentDescription = "Favorite",
+                        tint = if (isFavorite) accentColor else Color.Gray,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                // Tiempo de preparación
+                Card(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(bottom = 16.dp, end = 16.dp),
+                    shape = RoundedCornerShape(50.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = primaryColor.copy(alpha = 0.9f)
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Reemplazar todo el bloque del icono por esto:
+                        Text(
+                            text = "⏱️", // Emoji de reloj
+                            style = TextStyle(
+                                fontSize = 14.sp,
+                                color = Color.White
+                            )
+                        )
 
+                        Spacer(modifier = Modifier.width(4.dp))
+
+                        Text(
+                            text = recipe.prepTime,
+                            style = TextStyle(
+                                color = Color.White,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        )
+                    }
+                }
+            }
+
+            // Información de la receta
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                // Etiqueta de categoría
+                Card(
+                    shape = RoundedCornerShape(4.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = primaryColor.copy(alpha = 0.1f)
+                    ),
+                    modifier = Modifier.padding(bottom = 8.dp)
+                ) {
+                    Text(
+                        text = recipe.category,
+                        style = TextStyle(
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = primaryColor
+                        ),
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                }
+
+                // Descripción
                 Text(
                     text = recipe.description,
                     style = TextStyle(
                         fontSize = 14.sp,
-                        color = Color.Gray
-                    )
+                        color = Color.DarkGray
+                    ),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                Text(
-                    text = "Ingredients:",
-                    style = TextStyle(
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFF355E37)
-                    )
-                )
+                // Ingredientes principales
+                Row(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    recipe.ingredients.take(3).forEachIndexed { index, ingredient ->
+                        if (index > 0) {
+                            Text(
+                                text = " • ",
+                                style = TextStyle(
+                                    fontSize = 12.sp,
+                                    color = Color.Gray
+                                )
+                            )
+                        }
 
-                Spacer(modifier = Modifier.height(4.dp))
-
-                // Mostrar algunos ingredientes (los primeros 3)
-                recipe.ingredients.take(3).forEach { ingredient ->
-                    Text(
-                        text = "• $ingredient",
-                        style = TextStyle(
-                            fontSize = 12.sp,
-                            color = Color.DarkGray
+                        Text(
+                            text = ingredient,
+                            style = TextStyle(
+                                fontSize = 12.sp,
+                                color = Color.Gray,
+                                fontWeight = FontWeight.Medium
+                            )
                         )
-                    )
-                }
+                    }
 
-                // Si hay más ingredientes, mostrar un "+ X more"
-                if (recipe.ingredients.size > 3) {
-                    Text(
-                        text = "+ ${recipe.ingredients.size - 3} more",
-                        style = TextStyle(
-                            fontSize = 12.sp,
-                            color = Color(0xFF355E37),
-                            fontWeight = FontWeight.Medium
-                        ),
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
+                    if (recipe.ingredients.size > 3) {
+                        Text(
+                            text = " +${recipe.ingredients.size - 3} more",
+                            style = TextStyle(
+                                fontSize = 12.sp,
+                                color = primaryColor,
+                                fontWeight = FontWeight.Medium
+                            )
+                        )
+                    }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun EmptyRecipeList(query: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.f_png), // Reemplazar con imagen adecuada
+                contentDescription = null,
+                modifier = Modifier.size(120.dp),
+                colorFilter = ColorFilter.tint(Color.LightGray)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = if (query.isEmpty()) "No recipes found" else "No results for \"$query\"",
+                style = TextStyle(
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.DarkGray
+                )
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = if (query.isEmpty())
+                    "Try selecting a different category"
+                else
+                    "Try different keywords or browse by category",
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    color = Color.Gray,
+                    textAlign = TextAlign.Center
+                )
+            )
         }
     }
 }
@@ -403,16 +679,16 @@ private fun BottomNavBar(
             tint = Color.Gray,
             modifier = Modifier
                 .size(28.dp)
-                .clickable { /* Navegar a perfil */ }
+                .clickable { navController.navigate("profile") }
         )
 
         Icon(
-            painter = painterResource(id = R.drawable.f_png), // Reemplazar con un icono de marcador
-            contentDescription = "Bookmarks",
+            imageVector = Icons.Outlined.FavoriteBorder,
+            contentDescription = "Favorites",
             tint = Color.Gray,
             modifier = Modifier
                 .size(28.dp)
-                .clickable { /* Navegar a marcadores */ }
+                .clickable { navController.navigate("favorites") }
         )
     }
 }

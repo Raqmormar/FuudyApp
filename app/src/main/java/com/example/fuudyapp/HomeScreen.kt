@@ -14,15 +14,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -36,12 +41,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -54,6 +59,11 @@ import com.example.fuudyapp.R
 fun HomeScreen(navController: NavHostController) {
     // Define los colores principales de la aplicación
     val primaryGreen = Color(0xFF355E37)
+
+    // Define la fuente Epilogue
+    val epilogueBold = FontFamily(
+        Font(R.font.epilogue_bold)
+    )
 
     // Estado para el campo de búsqueda
     var searchQuery by remember { mutableStateOf("") }
@@ -82,34 +92,49 @@ fun HomeScreen(navController: NavHostController) {
                 .padding(horizontal = 16.dp)
                 .verticalScroll(scrollState)
         ) {
-            // Top bar con "Home"
-            Text(
-                text = "Home",
-                style = TextStyle(
-                    color = Color.Gray,
-                    fontSize = 16.sp
-                ),
-                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
-            )
-
-            Box(
+            // Top bar con logo y botón de añadir receta
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-                contentAlignment = Alignment.Center
+                    .padding(top = 16.dp, bottom = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                // Logo que funciona como botón home
                 Image(
                     painter = painterResource(id = R.drawable.fuudy_wb_1),
-                    contentDescription = "Logo App",
-                    modifier = Modifier.size(40.dp),
+                    contentDescription = "Go to Home",
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clickable {
+                            navController.navigate("home") {
+                                popUpTo("home") { inclusive = true }
+                            }
+                        }
                 )
+
+                // Botón "+" para añadir receta
+                FloatingActionButton(
+                    onClick = { navController.navigate("add_recipe") },
+                    containerColor = primaryGreen,
+                    contentColor = Color.White,
+                    modifier = Modifier.size(40.dp),
+                    shape = CircleShape
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add Recipe",
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(48.dp))
 
             Text(
                 text = "What do you want\nto cook today?",
                 style = TextStyle(
+                    fontFamily = epilogueBold,
                     color = primaryGreen,
                     fontSize = 30.sp,
                     fontWeight = FontWeight.Bold
@@ -227,7 +252,8 @@ fun HomeScreen(navController: NavHostController) {
         ) {
             BottomNavBar(
                 navController = navController,
-                primaryGreen = primaryGreen
+                primaryGreen = primaryGreen,
+                currentRoute = "home"
             )
         }
     }
@@ -261,7 +287,8 @@ private fun RecipeCard(
 @Composable
 private fun BottomNavBar(
     navController: NavHostController,
-    primaryGreen: Color
+    primaryGreen: Color,
+    currentRoute: String
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -283,16 +310,20 @@ private fun BottomNavBar(
             Icon(
                 imageVector = Icons.Outlined.Home,
                 contentDescription = "Home",
-                tint = primaryGreen,
+                tint = if (currentRoute == "home") primaryGreen else Color.Gray,
                 modifier = Modifier
                     .size(28.dp)
-                    .clickable { /* Estamos en Home */ }
+                    .clickable {
+                        navController.navigate("home") {
+                            popUpTo("home") { inclusive = true }
+                        }
+                    }
             )
 
             Icon(
                 imageVector = Icons.Outlined.Search,
                 contentDescription = "Search",
-                tint = Color.Gray,
+                tint = if (currentRoute == "recipe_list") primaryGreen else Color.Gray,
                 modifier = Modifier
                     .size(28.dp)
                     .clickable { navController.navigate("recipe_list") }
@@ -301,19 +332,20 @@ private fun BottomNavBar(
             Icon(
                 imageVector = Icons.Outlined.Person,
                 contentDescription = "Profile",
-                tint = Color.Gray,
+                tint = if (currentRoute == "profile") primaryGreen else Color.Gray,
                 modifier = Modifier
                     .size(28.dp)
                     .clickable { navController.navigate("profile") }
             )
 
-            Image(
-                painter = painterResource(id = R.drawable.guardar_instagram),
-                contentDescription = "Marcador",
+            Icon(
+                imageVector = Icons.Outlined.FavoriteBorder,
+                contentDescription = "Favorites",
+                tint = Color.Gray,
                 modifier = Modifier
-                    .size(18.dp)
-                    .clickable { /* Navegar a marcadores */ },
-                colorFilter = ColorFilter.tint(Color.Gray)            )
+                    .size(28.dp)
+                    .clickable { navController.navigate("favorites") }
+            )
         }
     }
 }

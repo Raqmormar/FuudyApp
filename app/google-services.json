@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "227724994139",
+    "project_id": "fuudyapp-60b8d",
+    "storage_bucket": "fuudyapp-60b8d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:227724994139:android:5b3fd3aecdf87e437b417e",
+        "android_client_info": {
+          "package_name": "com.example.fuudyapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBILdCv9LiWDBJUWHTN-NL-PJXNZKorgEE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

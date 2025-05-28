@@ -16,45 +16,53 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+/**
+ * ViewModel principal para gestionar el estado de las recetas
+ * Centraliza toda la lógica de negocio relacionada con recetas y favoritos
+ */
 class RecipeViewModel : ViewModel() {
 
+    // REPOSITORIOS: Instancias para acceso a datos
     private val recipeRepository = RecipeRepository()
     private val userRepository = UserRepository()
     private val storageRepository = StorageRepository()
-    private val favoritesRepository = FavoritesRepository() // Nuevo repositorio para favoritos
+    private val favoritesRepository = FavoritesRepository()
 
-    // Estado para la lista de recetas
+    // ESTADO DE RECETAS: StateFlow para observación reactiva desde la UI
     private val _recipes = MutableStateFlow<List<Recipe>>(emptyList())
     val recipes: StateFlow<List<Recipe>> = _recipes.asStateFlow()
 
-    // Estado para los favoritos
+    // ESTADO DE FAVORITOS: Lista de recetas marcadas como favoritas
     private val _favoriteRecipes = MutableStateFlow<List<Recipe>>(emptyList())
     val favoriteRecipes: StateFlow<List<Recipe>> = _favoriteRecipes.asStateFlow()
 
-    // Estado para los IDs de favoritos (nuevo)
+    // ESTADO DE IDS FAVORITOS: Set de IDs para verificación rápida
     private val _favoriteIds = MutableStateFlow<Set<String>>(emptySet())
     val favoriteIds: StateFlow<Set<String>> = _favoriteIds.asStateFlow()
 
-    // Estado de carga
+    // ESTADOS DE UI: Variables observables con mutableStateOf para Compose
     var isLoading by mutableStateOf(false)
-        private set
+        private set // Solo este ViewModel puede modificar el estado
 
-    // Estado de error
     var errorMessage by mutableStateOf<String?>(null)
         private set
 
-    // Estados para la carga de imágenes
+    // ESTADOS PARA CARGA DE IMÁGENES
     var isUploading by mutableStateOf(false)
         private set
 
-    var uploadProgress by mutableStateOf(0f)
+    var uploadProgress by mutableStateOf(0f) // Progreso de 0.0 a 1.0
         private set
 
+    // INICIALIZACIÓN: Carga datos al crear el ViewModel
     init {
         loadRecipes()
         loadFavoriteRecipes()
     }
 
+    /**
+     * Carga todas las recetas desde Firebase
+     */
     fun loadRecipes() {
         viewModelScope.launch {
             isLoading = true
@@ -71,19 +79,24 @@ class RecipeViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Carga las recetas favoritas del usuario actual
+     * Usa callback pattern del FavoritesRepository
+     */
     fun loadFavoriteRecipes() {
         viewModelScope.launch {
             isLoading = true
             errorMessage = null
 
             try {
-                // Usar el nuevo FavoritesRepository
+                // Usar FavoritesRepository con callbacks
                 favoritesRepository.getFavoriteRecipes(
                     onSuccess = { favoriteIds ->
+                        // Actualizar set de IDs para verificación rápida
                         _favoriteIds.value = favoriteIds.toSet()
 
                         if (favoriteIds.isNotEmpty()) {
-                            // Cargar las recetas favoritas usando los IDs
+                            // Cargar detalles completos de las recetas favoritas
                             viewModelScope.launch {
                                 try {
                                     val favorites = recipeRepository.getFavoriteRecipes(favoriteIds)
@@ -94,12 +107,14 @@ class RecipeViewModel : ViewModel() {
                                 }
                             }
                         } else {
+                            // Sin favoritos
                             _favoriteRecipes.value = emptyList()
                         }
 
                         isLoading = false
                     },
                     onError = { e ->
+                        // Manejo de errores del callback
                         errorMessage = "Error loading favorite recipes: ${e.message}"
                         _favoriteRecipes.value = emptyList()
                         _favoriteIds.value = emptySet()
@@ -113,18 +128,22 @@ class RecipeViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Alterna el estado de favorito de una receta
+     * @param recipeId ID de la receta a alternar
+     */
     fun toggleFavorite(recipeId: String) {
         viewModelScope.launch {
             try {
-                // Verificar si ya está en favoritos
+                // Verificar estado actual de favorito
                 val isFavorite = _favoriteIds.value.contains(recipeId)
 
                 if (isFavorite) {
-                    // Eliminar de favoritos
+                    // ELIMINAR DE FAVORITOS
                     favoritesRepository.removeFromFavorites(
                         recipeId,
                         onSuccess = {
-                            // Actualizar inmediatamente el estado local
+                            // Actualizar estado local inmediatamente para UI responsiva
                             _favoriteIds.value = _favoriteIds.value - recipeId
                             _favoriteRecipes.value = _favoriteRecipes.value.filter { it.id != recipeId }
                         },
@@ -133,14 +152,14 @@ class RecipeViewModel : ViewModel() {
                         }
                     )
                 } else {
-                    // Añadir a favoritos
+                    // AÑADIR A FAVORITOS
                     favoritesRepository.addToFavorites(
                         recipeId,
                         onSuccess = {
-                            // Actualizar inmediatamente el estado local
+                            // Actualizar estado local inmediatamente
                             _favoriteIds.value = _favoriteIds.value + recipeId
 
-                            // Si tenemos la receta en la lista principal, añadirla a favoritos
+                            // Si tenemos la receta en memoria, añadirla a favoritos
                             val recipe = _recipes.value.find { it.id == recipeId }
                             if (recipe != null && !_favoriteRecipes.value.any { it.id == recipeId }) {
                                 _favoriteRecipes.value = _favoriteRecipes.value + recipe
@@ -157,8 +176,10 @@ class RecipeViewModel : ViewModel() {
         }
     }
 
-    // El resto de tus funciones sin cambios...
-
+    /**
+     * Busca recetas por texto
+     * @param query Texto de búsqueda
+     */
     fun searchRecipes(query: String) {
         viewModelScope.launch {
             isLoading = true
@@ -166,8 +187,10 @@ class RecipeViewModel : ViewModel() {
 
             try {
                 if (query.isBlank()) {
+                    // Si no hay query, cargar todas las recetas
                     loadRecipes()
                 } else {
+                    // Buscar recetas que coincidan con el query
                     val searchResults = recipeRepository.searchRecipes(query)
                     _recipes.value = searchResults
                 }
@@ -179,6 +202,11 @@ class RecipeViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Obtiene una receta específica por ID
+     * @param recipeId ID de la receta
+     * @param onResult Callback con el resultado
+     */
     fun getRecipeById(recipeId: String, onResult: (Recipe?) -> Unit) {
         viewModelScope.launch {
             try {
@@ -191,8 +219,12 @@ class RecipeViewModel : ViewModel() {
         }
     }
 
-    // Funciones para gestión de imágenes sin cambios...
-
+    /**
+     * Añade una nueva receta, incluyendo la subida de imagen si existe
+     * @param recipe Datos de la receta
+     * @param imageUri URI de la imagen seleccionada (opcional)
+     * @param onComplete Callback con resultado de éxito/error
+     */
     fun addRecipeWithImage(recipe: Recipe, imageUri: Uri?, onComplete: (Boolean) -> Unit) {
         viewModelScope.launch {
             isUploading = true
@@ -200,25 +232,26 @@ class RecipeViewModel : ViewModel() {
             errorMessage = null
 
             try {
-                // Primero crear la receta para obtener su ID
+                // PASO 1: Crear receta sin imagen para obtener ID
                 val tempRecipe = recipe.copy(imageUrl = "")
                 val recipeId = recipeRepository.addRecipe(tempRecipe)
 
                 if (recipeId != null) {
-                    // Si hay una imagen, la subimos
                     var imageUrl = ""
+
+                    // PASO 2: Subir imagen si existe
                     if (imageUri != null) {
                         uploadProgress = 0.3f
                         imageUrl = storageRepository.uploadRecipeImage(imageUri, recipeId) ?: ""
                         uploadProgress = 0.7f
                     }
 
-                    // Actualizamos la receta con la URL de la imagen
+                    // PASO 3: Actualizar receta con URL de imagen
                     val updatedRecipe = recipe.copy(id = recipeId, imageUrl = imageUrl)
                     val success = recipeRepository.updateRecipe(updatedRecipe)
                     uploadProgress = 1f
 
-                    // Refrescar la lista de recetas
+                    // PASO 4: Refrescar lista para mostrar nueva receta
                     loadRecipes()
 
                     onComplete(success)
@@ -230,12 +263,19 @@ class RecipeViewModel : ViewModel() {
                 errorMessage = "Error al añadir receta: ${e.message}"
                 onComplete(false)
             } finally {
+                // Resetear estados de carga
                 isUploading = false
                 uploadProgress = 0f
             }
         }
     }
 
+    /**
+     * Actualiza una receta existente, manejando cambios de imagen
+     * @param recipe Datos actualizados de la receta
+     * @param imageUri Nueva imagen seleccionada (opcional)
+     * @param onComplete Callback con resultado
+     */
     fun updateRecipeWithImage(recipe: Recipe, imageUri: Uri?, onComplete: (Boolean) -> Unit) {
         viewModelScope.launch {
             isUploading = true
@@ -245,27 +285,27 @@ class RecipeViewModel : ViewModel() {
             try {
                 var imageUrl = recipe.imageUrl
 
-                // Si hay una nueva imagen seleccionada
+                // Si hay nueva imagen seleccionada
                 if (imageUri != null) {
                     uploadProgress = 0.2f
 
-                    // Si ya había una imagen anterior, la eliminamos
+                    // Eliminar imagen anterior si existe
                     if (imageUrl.isNotEmpty()) {
                         storageRepository.deleteRecipeImage(imageUrl)
                     }
 
-                    // Subimos la nueva imagen
+                    // Subir nueva imagen
                     uploadProgress = 0.5f
                     imageUrl = storageRepository.uploadRecipeImage(imageUri, recipe.id) ?: ""
                     uploadProgress = 0.8f
                 }
 
-                // Actualizamos la receta con la nueva URL
+                // Actualizar receta con nueva URL
                 val updatedRecipe = recipe.copy(imageUrl = imageUrl)
                 val success = recipeRepository.updateRecipe(updatedRecipe)
                 uploadProgress = 1f
 
-                // Refrescar datos
+                // Refrescar datos para mostrar cambios
                 loadRecipes()
                 loadFavoriteRecipes()
 
@@ -280,21 +320,27 @@ class RecipeViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Elimina una receta y su imagen asociada
+     * @param recipeId ID de la receta a eliminar
+     * @param imageUrl URL de la imagen a eliminar
+     * @param onComplete Callback con resultado
+     */
     fun deleteRecipeWithImage(recipeId: String, imageUrl: String, onComplete: (Boolean) -> Unit) {
         viewModelScope.launch {
             isLoading = true
             errorMessage = null
 
             try {
-                // Primero eliminamos la imagen si existe
+                // PASO 1: Eliminar imagen de Firebase Storage
                 if (imageUrl.isNotEmpty()) {
                     storageRepository.deleteRecipeImage(imageUrl)
                 }
 
-                // Luego eliminamos la receta
+                // PASO 2: Eliminar receta de Firestore
                 val success = recipeRepository.deleteRecipe(recipeId)
 
-                // Actualizar listas
+                // PASO 3: Actualizar listas locales
                 loadRecipes()
                 loadFavoriteRecipes()
 

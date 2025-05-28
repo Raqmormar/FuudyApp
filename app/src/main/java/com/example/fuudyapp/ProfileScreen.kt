@@ -29,6 +29,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 
+/**
+ * Pantalla de perfil del usuario
+ * Muestra información personal, estadísticas y opciones de cuenta
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(navController: NavHostController) {
@@ -54,7 +58,7 @@ fun ProfileScreen(navController: NavHostController) {
             .fillMaxSize()
             .background(neutralBackground)
     ) {
-        // Contenido principal
+        // Contenido principal con scroll
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -78,7 +82,7 @@ fun ProfileScreen(navController: NavHostController) {
                     )
                 )
 
-                // Botón de configuración
+                // Botón de configuración circular
                 IconButton(
                     onClick = { /* Navegación a configuración */ },
                     modifier = Modifier
@@ -97,7 +101,7 @@ fun ProfileScreen(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Sección de información del perfil
+            // CABECERA DEL PERFIL con foto y datos del usuario
             ProfileHeader(
                 name = "Raquel Mora",
                 email = "raqmormor@gmail.com",
@@ -118,6 +122,7 @@ fun ProfileScreen(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // OPCIONES DEL PERFIL (mis recetas, favoritos, etc.)
             ProfileOptions(
                 primaryGreen = primaryGreen,
                 onMyRecipesClick = { /* Navegar a mis recetas */ },
@@ -125,11 +130,11 @@ fun ProfileScreen(navController: NavHostController) {
                 onDietaryPreferencesClick = { /* Navegar a preferencias dietéticas */ }
             )
 
-            // Aseguramos espacio suficiente para la navegación inferior
+            // Espacio adicional para evitar que la barra de navegación tape contenido
             Spacer(modifier = Modifier.height(80.dp))
         }
 
-        // Bottom Navigation Bar
+        // BARRA DE NAVEGACIÓN INFERIOR (flotante)
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -143,7 +148,9 @@ fun ProfileScreen(navController: NavHostController) {
         }
     }
 }
-
+/**
+ * Componente de cabecera con foto de perfil y datos del usuario
+ */
 @Composable
 private fun ProfileHeader(
     name: String,
@@ -163,7 +170,7 @@ private fun ProfileHeader(
                 .padding(vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Imagen de perfil con borde
+            // FOTO DE PERFIL con borde decorativo y botón de editar
             Box(
                 contentAlignment = Alignment.Center
             ) {
@@ -258,7 +265,10 @@ private fun ProfileHeader(
         }
     }
 }
-
+/**
+ * Componente que muestra estadísticas de actividad del usuario
+ * Incluye número de recetas, favoritos y preferencias
+ */
 @Composable
 private fun UserActivityStats(primaryGreen: Color) {
     Card(
@@ -312,7 +322,10 @@ private fun UserActivityStats(primaryGreen: Color) {
         }
     }
 }
-
+/**
+ * Componente individual para mostrar una estadística
+ * Incluye icono, número y etiqueta
+ */
 @Composable
 private fun StatItem(
     count: String,
@@ -350,7 +363,10 @@ private fun StatItem(
         )
     }
 }
-
+/**
+ * Componente que muestra las opciones principales del perfil
+ * Incluye mis recetas, favoritos y preferencias dietéticas
+ */
 @Composable
 private fun ProfileOptions(
     primaryGreen: Color,
@@ -405,7 +421,10 @@ private fun ProfileOptions(
         }
     }
 }
-
+/**
+ * Componente individual para cada opción del perfil
+ * Incluye icono, título, subtítulo y flecha indicativa
+ */
 @Composable
 private fun ProfileOptionItem(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
@@ -469,7 +488,10 @@ private fun ProfileOptionItem(
         )
     }
 }
-
+/**
+ * Barra de navegación inferior mejorada con diseño elevado
+ * Incluye etiquetas de texto bajo los iconos
+ */
 @Composable
 private fun BottomNavBar(
     navController: NavHostController,
@@ -533,7 +555,10 @@ private fun BottomNavBar(
         }
     }
 }
-
+/**
+ * Componente individual para cada pestaña de navegación
+ * Incluye icono y etiqueta de texto con estados activo/inactivo
+ */
 @Composable
 private fun NavBarItem(
     icon: androidx.compose.ui.graphics.vector.ImageVector,

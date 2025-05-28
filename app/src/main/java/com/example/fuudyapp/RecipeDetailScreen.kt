@@ -49,17 +49,21 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.fuudyapp.ui.viewmodel.RecipeViewModel
 
+/**
+ * Pantalla de detalle de receta individual
+ * Muestra información completa: imagen, descripción, ingredientes e instrucciones
+ */
 @Composable
 fun RecipeDetailScreen(
     navController: NavHostController,
-    recipeId: Int? = 1,
+    recipeId: Int? = 1, // ID de la receta a mostrar
     viewModel: RecipeViewModel = viewModel()
 ) {
-    // Colores
+    // PALETA DE COLORES
     val primaryGreen = Color(0xFF355E37)
-    val backgroundColor = Color(0xFFF5F2EE)  // Color beige claro para el fondo
+    val backgroundColor = Color(0xFFF5F2EE) // Color beige claro para el fondo
 
-    // Lista de recetas
+    // DATOS MOCK de recetas (en app real vendría de Firebase)
     val recipes = remember {
         listOf(
             Recipe(
@@ -105,16 +109,16 @@ fun RecipeDetailScreen(
         )
     }
 
-    // Seleccionar la receta según el ID
+    // SELECCIONAR RECETA según ID recibido como parámetro
     val currentRecipeId = recipeId ?: 1
-    val recipeIndex = (currentRecipeId - 1).coerceIn(0, recipes.size - 1)
+    val recipeIndex = (currentRecipeId - 1).coerceIn(0, recipes.size - 1) // Asegurar índice válido
     val recipe = recipes[recipeIndex]
 
-    // Estado para favoritos
-    var isFavorite by remember { mutableStateOf(false) }
-    val scrollState = rememberScrollState()
+    // ESTADOS LOCALES
+    var isFavorite by remember { mutableStateOf(false) } // Estado del botón favorito
+    val scrollState = rememberScrollState() // Control de scroll vertical
 
-    // UI principal con diseño de tarjeta redondeada similar a la imagen de referencia
+    // ESTRUCTURA PRINCIPAL con fondo de color
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -125,34 +129,34 @@ fun RecipeDetailScreen(
                 .fillMaxSize()
                 .verticalScroll(scrollState)
         ) {
-            // Cabecera con imagen y botones
+            // CABECERA CON IMAGEN Y BOTONES SUPERPUESTOS
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(280.dp)
             ) {
-                // Imagen principal
+                // Imagen principal de la receta
                 Image(
                     painter = painterResource(id = recipe.imageResource),
                     contentDescription = recipe.name,
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Crop // Recorta para ajustar sin deformar
                 )
 
-                // Botones superiores
+                // BOTONES SUPERPUESTOS en la imagen
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    // Botón de retroceso
+                    // Botón de retroceso (esquina superior izquierda)
                     IconButton(
                         onClick = { navController.navigateUp() },
                         modifier = Modifier
                             .size(40.dp)
                             .clip(CircleShape)
-                            .background(Color.White.copy(alpha = 0.8f))
+                            .background(Color.White.copy(alpha = 0.8f)) // Fondo semitransparente
                     ) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
@@ -161,12 +165,12 @@ fun RecipeDetailScreen(
                         )
                     }
 
-                    // Botón de favorito (MODIFICADO)
+                    // Botón de favorito (esquina superior derecha)
                     IconButton(
                         onClick = {
-                            // Convertir a String para Firebase y guardar en favoritos
+                            // Convertir ID a String para Firebase y alternar favorito
                             viewModel.toggleFavorite(currentRecipeId.toString())
-                            // Actualizar estado local
+                            // Actualizar estado local para UI inmediata
                             isFavorite = !isFavorite
                         },
                         modifier = Modifier
@@ -183,12 +187,12 @@ fun RecipeDetailScreen(
                 }
             }
 
-            // Contenido de la receta en una tarjeta redondeada
+            // CONTENIDO PRINCIPAL en tarjeta superpuesta
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
-                    .offset(y = (-30).dp),
+                    .offset(y = (-30).dp), // Superpone la tarjeta sobre la imagen
                 shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = Color.White
@@ -202,7 +206,7 @@ fun RecipeDetailScreen(
                         .fillMaxWidth()
                         .padding(24.dp)
                 ) {
-                    // Sección de "About"
+                    // SECCIÓN "ABOUT" - Descripción de la receta
                     Text(
                         text = "About",
                         style = TextStyle(
@@ -223,7 +227,7 @@ fun RecipeDetailScreen(
                         modifier = Modifier.padding(bottom = 24.dp)
                     )
 
-                    // Sección de "Ingredients"
+                    // SECCIÓN "INGREDIENTS" - Lista de ingredientes
                     Text(
                         text = "Ingredients",
                         style = TextStyle(
@@ -234,8 +238,8 @@ fun RecipeDetailScreen(
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
 
-                    // Grid de ingredientes - AHORA DINÁMICO basado en la receta actual
-                    val displayedIngredients = recipe.ingredients.take(4) // Tomar hasta 4 ingredientes para mostrar como íconos
+                    // Grid de iconos de ingredientes principales
+                    val displayedIngredients = recipe.ingredients.take(4) // Máximo 4 iconos
 
                     Row(
                         modifier = Modifier
@@ -243,7 +247,7 @@ fun RecipeDetailScreen(
                             .padding(bottom = 24.dp),
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        // Mostramos los ingredientes de la receta actual
+                        // Mostrar iconos de ingredientes dinámicamente
                         displayedIngredients.forEach { ingredient ->
                             IngredientIcon(
                                 name = ingredient,
@@ -251,7 +255,7 @@ fun RecipeDetailScreen(
                             )
                         }
 
-                        // Si hay menos de 4 ingredientes, rellenamos con espacios vacíos
+                        // Rellenar espacios vacíos si hay menos de 4 ingredientes
                         repeat(4 - displayedIngredients.size) {
                             Spacer(modifier = Modifier.weight(1f))
                         }
@@ -264,7 +268,7 @@ fun RecipeDetailScreen(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Sección de "Instructions"
+                    // SECCIÓN "INSTRUCTIONS" - Pasos de preparación
                     Text(
                         text = "Instructions",
                         style = TextStyle(
@@ -275,7 +279,7 @@ fun RecipeDetailScreen(
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
 
-                    // Instrucciones basadas en el tipo de receta
+                    // Instrucciones específicas según el tipo de receta
                     val instructions = when (recipe.id) {
                         1 -> listOf( // Banana Pancakes
                             "Mix mashed bananas, eggs, flour, cinnamon, and a pinch of salt.",
@@ -303,6 +307,7 @@ fun RecipeDetailScreen(
                         )
                     }
 
+                    // Mostrar cada paso de instrucción con numeración
                     instructions.forEachIndexed { index, instruction ->
                         InstructionStep(
                             number = index + 1,
@@ -310,7 +315,7 @@ fun RecipeDetailScreen(
                         )
                     }
 
-                    // Espacio al final
+                    // Espacio final
                     Spacer(modifier = Modifier.height(40.dp))
                 }
             }
@@ -318,12 +323,16 @@ fun RecipeDetailScreen(
     }
 }
 
+/**
+ * Componente que muestra un icono circular para cada ingrediente
+ * Usa emojis como iconos según el tipo de ingrediente
+ */
 @Composable
 private fun IngredientIcon(
     name: String,
     modifier: Modifier = Modifier
 ) {
-    // Asignar un emoji según el ingrediente para simulación de íconos
+    // Mapeo de ingredientes a emojis representativos
     val emoji = when {
         name.contains("Flour", ignoreCase = true) -> "🌾"
         name.contains("Banana", ignoreCase = true) -> "🍌"
@@ -343,19 +352,19 @@ private fun IngredientIcon(
         name.contains("Cinnamon", ignoreCase = true) -> "🌰"
         name.contains("Garlic", ignoreCase = true) -> "🧄"
         name.contains("Onion", ignoreCase = true) -> "🧅"
-        else -> "🍽️"
+        else -> "🍽️" // Emoji genérico para ingredientes no reconocidos
     }
 
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Círculo para el icono
+        // Círculo contenedor del emoji
         Box(
             modifier = Modifier
                 .size(60.dp)
                 .clip(CircleShape)
-                .background(Color(0xFFF6F6F6)),
+                .background(Color(0xFFF6F6F6)), // Fondo gris claro
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -366,7 +375,7 @@ private fun IngredientIcon(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Nombre del ingrediente
+        // Nombre del ingrediente debajo del icono
         Text(
             text = name,
             style = TextStyle(
@@ -379,6 +388,10 @@ private fun IngredientIcon(
     }
 }
 
+/**
+ * Componente para mostrar un ingrediente en formato lista
+ * Incluye punto verde y nombre del ingrediente
+ */
 @Composable
 private fun IngredientItem(
     ingredient: String
@@ -389,7 +402,7 @@ private fun IngredientItem(
             .padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Punto
+        // Punto decorativo verde
         Box(
             modifier = Modifier
                 .size(6.dp)
@@ -410,6 +423,10 @@ private fun IngredientItem(
     }
 }
 
+/**
+ * Componente para mostrar un paso de instrucción numerado
+ * Incluye número en círculo y texto de la instrucción
+ */
 @Composable
 private fun InstructionStep(
     number: Int,
@@ -421,12 +438,12 @@ private fun InstructionStep(
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.Top
     ) {
-        // Número del paso
+        // Número del paso en círculo
         Box(
             modifier = Modifier
                 .size(24.dp)
                 .clip(CircleShape)
-                .background(Color(0xFFF6F6F6)),
+                .background(Color(0xFFF6F6F6)), // Fondo gris claro
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -434,7 +451,7 @@ private fun InstructionStep(
                 style = TextStyle(
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF355E37)
+                    color = Color(0xFF355E37) // Verde principal
                 )
             )
         }

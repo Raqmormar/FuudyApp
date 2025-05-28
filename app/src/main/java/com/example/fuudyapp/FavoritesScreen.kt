@@ -36,34 +36,42 @@ import com.example.fuudyapp.models.Recipe
 import com.example.fuudyapp.ui.viewmodel.RecipeViewModel
 import kotlinx.coroutines.delay
 
+/**
+ * Pantalla que muestra las recetas favoritas del usuario
+ * @param navController - Control de navegación entre pantallas
+ * @param viewModel - ViewModel para gestionar datos de recetas
+ */
 @Composable
 fun FavoritesScreen(
     navController: NavHostController,
     viewModel: RecipeViewModel = viewModel()
 ) {
-    // Color principal
+    // Paleta de colores de la aplicación
     val primaryGreen = Color(0xFF355E37)
     val accentOrange = Color(0xFFF6913E)
-    val neutralBackground = Color(0xFFF8F7F5) // Color neutral para el fondo
+    val neutralBackground = Color(0xFFF8F7F5)
 
-    // Estado para las recetas favoritas
+    // ESTADOS PARA GESTIONAR LA UI
+    // Lista mutable de recetas favoritas que se actualiza en tiempo real
     val favoriteRecipes = remember { mutableStateListOf<Recipe>() }
+    // Estado de carga para mostrar spinner
     var isLoading by remember { mutableStateOf(true) }
+    // Estado de error para mostrar mensaje de error
     var hasError by remember { mutableStateOf(false) }
+    // Mensaje específico del error
     var errorMessage by remember { mutableStateOf("") }
 
-    // Efecto para cargar las recetas favoritas desde Firebase
+    // CARGA INICIAL DE DATOS
+    // LaunchedEffect se ejecuta una sola vez cuando se crea el composable
     LaunchedEffect(Unit) {
-        // Creamos el repositorio
+        // Instancia del repositorio para acceder a Firebase
         val favoritesRepository = FavoritesRepository()
 
-        // Obtenemos los IDs de las recetas favoritas del usuario
+        // Obtiene los IDs de recetas favoritas del usuario desde Firebase
         favoritesRepository.getFavoriteRecipes(
             onSuccess = { favoriteIds ->
-                // Convertimos los IDs en recetas completas
-                // Normalmente aquí harías una llamada a otro repositorio para obtener los detalles
-                // de cada receta por su ID, pero por ahora usaremos datos de ejemplo
-
+                // DATOS MOCK: En una app real, aquí harías una consulta a Firebase
+                // para obtener los detalles completos de cada receta por su ID
                 val recipeMap = mapOf(
                     "1" to Recipe(
                         id = "1",
@@ -100,14 +108,17 @@ fun FavoritesScreen(
                     )
                 )
 
-                // Filtrar solo las recetas que existen en nuestro mapa
+                // Filtra solo las recetas que existen en nuestro mapa mock
+                // mapNotNull ignora los IDs que no encuentra
                 val recipes = favoriteIds.mapNotNull { id -> recipeMap[id] }
 
+                // Actualiza la UI con las recetas encontradas
                 favoriteRecipes.clear()
                 favoriteRecipes.addAll(recipes)
                 isLoading = false
             },
             onError = { exception ->
+                // Manejo de errores al cargar favoritos
                 isLoading = false
                 hasError = true
                 errorMessage = exception.message ?: "Error al cargar favoritos"
@@ -116,23 +127,26 @@ fun FavoritesScreen(
         )
     }
 
+    // ESTRUCTURA PRINCIPAL DE LA PANTALLA
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(neutralBackground)
     ) {
-        // Contenido principal
+        // Contenido principal (columna vertical)
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Barra superior
+            // Barra superior con título y botón de retroceso
             TopBar(
                 title = "My Favorite Recipes",
                 onBackClick = { navController.navigateUp() },
                 primaryGreen = primaryGreen
             )
 
-            // Lista de recetas favoritas
+            // LÓGICA CONDICIONAL PARA MOSTRAR DIFERENTES ESTADOS
+
+            // Estado 1: Cargando datos
             if (isLoading) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -140,8 +154,9 @@ fun FavoritesScreen(
                 ) {
                     CircularProgressIndicator(color = primaryGreen)
                 }
-            } else if (hasError) {
-                // Mensaje de error
+            }
+            // Estado 2: Error al cargar
+            else if (hasError) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -173,15 +188,16 @@ fun FavoritesScreen(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
+                        // Botón para reintentar la carga
                         Button(
                             onClick = {
+                                // Resetea estados y reintenta la carga
                                 isLoading = true
                                 hasError = false
-                                // Reintentar cargar los favoritos
+                                // CÓDIGO DUPLICADO: Misma lógica que en LaunchedEffect
                                 val favoritesRepository = FavoritesRepository()
                                 favoritesRepository.getFavoriteRecipes(
                                     onSuccess = { favoriteIds ->
-                                        // Mismo código que arriba
                                         val recipeMap = mapOf(
                                             "1" to Recipe(
                                                 id = "1",
@@ -219,7 +235,6 @@ fun FavoritesScreen(
                                         )
 
                                         val recipes = favoriteIds.mapNotNull { id -> recipeMap[id] }
-
                                         favoriteRecipes.clear()
                                         favoriteRecipes.addAll(recipes)
                                         isLoading = false
@@ -239,8 +254,9 @@ fun FavoritesScreen(
                         }
                     }
                 }
-            } else if (favoriteRecipes.isEmpty()) {
-                // Mensaje cuando no hay favoritos
+            }
+            // Estado 3: No hay favoritos
+            else if (favoriteRecipes.isEmpty()) {
                 EmptyFavorites(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -248,8 +264,10 @@ fun FavoritesScreen(
                     primaryGreen = primaryGreen,
                     onExploreClick = { navController.navigate("recipe_list") }
                 )
-            } else {
-                // Lista de recetas favoritas
+            }
+            // Estado 4: Lista de favoritos
+            else {
+                // Lista scrolleable de recetas favoritas
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -258,23 +276,25 @@ fun FavoritesScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     contentPadding = PaddingValues(vertical = 16.dp)
                 ) {
+                    // Crea un item de lista para cada receta favorita
                     items(favoriteRecipes) { recipe ->
                         FavoriteRecipeCard(
                             recipe = recipe,
+                            // Navega a detalle de receta al hacer clic
                             onClick = {
                                 navController.navigate("recipe_detail/${recipe.id}")
                             },
+                            // Elimina de favoritos al hacer clic en corazón
                             onFavoriteClick = {
-                                // Aquí se llama al repositorio para eliminar de favoritos
                                 val favoritesRepository = FavoritesRepository()
                                 favoritesRepository.removeFromFavorites(
                                     recipeId = recipe.id,
                                     onSuccess = {
-                                        // Eliminamos de la UI solo si Firebase tiene éxito
+                                        // Solo actualiza UI si Firebase confirma éxito
                                         favoriteRecipes.remove(recipe)
                                     },
                                     onError = { exception ->
-                                        // Aquí podrías mostrar un mensaje de error
+                                        // Manejo de errores al eliminar favorito
                                         println("Error al eliminar favorito: ${exception.message}")
                                     }
                                 )
@@ -284,7 +304,7 @@ fun FavoritesScreen(
                         )
                     }
 
-                    // Espacio para la barra de navegación
+                    // Espacio adicional para evitar que la barra de navegación tape contenido
                     item {
                         Spacer(modifier = Modifier.height(70.dp))
                     }
@@ -292,7 +312,7 @@ fun FavoritesScreen(
             }
         }
 
-        // Barra de navegación inferior
+        // Barra de navegación inferior (flotante sobre el contenido)
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -301,12 +321,15 @@ fun FavoritesScreen(
             BottomNavBar(
                 navController = navController,
                 primaryGreen = primaryGreen,
-                currentRoute = "favorites"
+                currentRoute = "favorites" // Marca esta pantalla como activa
             )
         }
     }
 }
 
+/**
+ * Componente de barra superior con título y botón de retroceso
+ */
 @Composable
 private fun TopBar(
     title: String,
@@ -320,7 +343,7 @@ private fun TopBar(
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Botón de retroceso
+        // Botón circular de retroceso
         IconButton(
             onClick = onBackClick,
             modifier = Modifier
@@ -348,6 +371,9 @@ private fun TopBar(
     }
 }
 
+/**
+ * Componente mostrado cuando no hay recetas favoritas
+ */
 @Composable
 private fun EmptyFavorites(
     modifier: Modifier = Modifier,
@@ -359,17 +385,17 @@ private fun EmptyFavorites(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Icono de corazón vacío
+        // Icono grande de corazón para estado vacío
         Icon(
             imageVector = Icons.Filled.Favorite,
             contentDescription = null,
-            tint = primaryGreen.copy(alpha = 0.3f),
+            tint = primaryGreen.copy(alpha = 0.3f), // Semitransparente
             modifier = Modifier.size(100.dp)
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Mensaje
+        // Mensaje principal
         Text(
             text = "No favorite recipes yet",
             style = TextStyle(
@@ -381,6 +407,7 @@ private fun EmptyFavorites(
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        // Mensaje secundario
         Text(
             text = "Start exploring recipes and save your favorites!",
             style = TextStyle(
@@ -392,7 +419,7 @@ private fun EmptyFavorites(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Botón para explorar recetas
+        // Botón para navegar a lista de recetas
         Button(
             onClick = onExploreClick,
             colors = ButtonDefaults.buttonColors(
@@ -408,6 +435,9 @@ private fun EmptyFavorites(
     }
 }
 
+/**
+ * Tarjeta individual para mostrar una receta favorita
+ */
 @Composable
 private fun FavoriteRecipeCard(
     recipe: Recipe,
@@ -420,7 +450,7 @@ private fun FavoriteRecipeCard(
         modifier = Modifier
             .fillMaxWidth()
             .height(120.dp)
-            .clickable(onClick = onClick),
+            .clickable(onClick = onClick), // Hace toda la tarjeta clickeable
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 4.dp
@@ -432,14 +462,13 @@ private fun FavoriteRecipeCard(
         Row(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Imagen de la receta
+            // Sección izquierda: Imagen de la receta
             Box(
                 modifier = Modifier
                     .width(120.dp)
                     .fillMaxHeight()
             ) {
-                // Si hay una URL de imagen, usaríamos Coil para cargarla
-                // Por ahora, usamos una imagen de recurso
+                // Mapeo de IDs a imágenes locales (en app real usarías URLs)
                 val imageRes = when (recipe.id) {
                     "1" -> R.drawable.pancake
                     "2" -> R.drawable.pok_
@@ -452,11 +481,11 @@ private fun FavoriteRecipeCard(
                     painter = painterResource(id = imageRes),
                     contentDescription = recipe.name,
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Crop // Recorta imagen para ajustar
                 )
             }
 
-            // Información de la receta
+            // Sección derecha: Información de la receta
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -476,11 +505,11 @@ private fun FavoriteRecipeCard(
                             color = Color.Black
                         ),
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        overflow = TextOverflow.Ellipsis, // Añade "..." si es muy largo
                         modifier = Modifier.weight(1f)
                     )
 
-                    // Botón de favorito
+                    // Botón de favorito (corazón relleno)
                     IconButton(
                         onClick = onFavoriteClick,
                         modifier = Modifier.size(32.dp)
@@ -488,7 +517,7 @@ private fun FavoriteRecipeCard(
                         Icon(
                             imageVector = Icons.Filled.Favorite,
                             contentDescription = "Remove from Favorites",
-                            tint = accentColor,
+                            tint = accentColor, // Color naranja
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -496,7 +525,7 @@ private fun FavoriteRecipeCard(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                // Categoría
+                // Categoría de la receta
                 Text(
                     text = recipe.category,
                     style = TextStyle(
@@ -507,7 +536,7 @@ private fun FavoriteRecipeCard(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                // Tiempo de preparación
+                // Tiempo de preparación con emoji
                 Text(
                     text = "⏱️ ${recipe.prepTime}",
                     style = TextStyle(
@@ -520,6 +549,9 @@ private fun FavoriteRecipeCard(
     }
 }
 
+/**
+ * Barra de navegación inferior con 4 pestañas
+ */
 @Composable
 private fun BottomNavBar(
     navController: NavHostController,
@@ -543,6 +575,7 @@ private fun BottomNavBar(
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Pestaña Home
             Icon(
                 imageVector = Icons.Outlined.Home,
                 contentDescription = "Home",
@@ -556,6 +589,7 @@ private fun BottomNavBar(
                     }
             )
 
+            // Pestaña Search/Recipe List
             Icon(
                 imageVector = Icons.Outlined.Search,
                 contentDescription = "Search",
@@ -565,6 +599,7 @@ private fun BottomNavBar(
                     .clickable { navController.navigate("recipe_list") }
             )
 
+            // Pestaña Profile
             Icon(
                 imageVector = Icons.Outlined.Person,
                 contentDescription = "Profile",
@@ -574,6 +609,7 @@ private fun BottomNavBar(
                     .clickable { navController.navigate("profile") }
             )
 
+            // Pestaña Favorites (activa en esta pantalla)
             Icon(
                 imageVector = if (currentRoute == "favorites") Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
                 contentDescription = "Favorites",

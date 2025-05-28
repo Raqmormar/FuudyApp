@@ -8,9 +8,17 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.fuudyapp.ui.theme.HomeScreen
 
+/**
+ * Componente principal de navegación de la aplicación Fuudy
+ * Define todas las rutas y pantallas disponibles en la app
+ */
+
 @Composable
 fun AppNavigation() {
+    // Crea y mantiene el controlador de navegación para toda la app
     val navController = rememberNavController()
+    // NavHost: contenedor principal que maneja la navegación
+    // startDestination: pantalla inicial cuando se abre la app
     NavHost(navController = navController, startDestination = "login") {
         composable("login") { LoginScreen(navController) }
         composable("signup") { SignUpScreen(navController) }

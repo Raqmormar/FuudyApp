@@ -36,32 +36,42 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.fuudyapp.ui.viewmodel.AuthViewModel
 
+/**
+ * Pantalla de registro de nuevos usuarios
+ * Permite crear cuenta con nombre, email y contraseña
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignUpScreen(
     navController: NavHostController,
     authViewModel: AuthViewModel = viewModel()
 ) {
+    // ESTADOS LOCALES para los campos del formulario
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var displayName by remember { mutableStateOf("") }
+    var displayName by remember { mutableStateOf("") } // Campo adicional vs LoginScreen
 
+    // OBSERVADOR DEL ESTADO DE AUTENTICACIÓN
+    // Navega automáticamente cuando el registro es exitoso
     LaunchedEffect(authViewModel.authState) {
         when (authViewModel.authState) {
             AuthViewModel.AuthState.Authenticated -> {
+                // Registro exitoso: navegar a home y limpiar stack
                 navController.navigate("home") {
                     popUpTo("signup") { inclusive = true }
                 }
             }
             else -> {
+                // Otros estados no requieren acción
             }
         }
     }
 
+    // ESTRUCTURA PRINCIPAL con imagen de fondo
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Fondo
+        // Imagen de fondo (misma que LoginScreen para consistencia)
         Image(
             painter = painterResource(id = R.drawable.wasa___avakado_),
             contentDescription = null,
@@ -69,7 +79,7 @@ fun SignUpScreen(
             contentScale = ContentScale.Crop
         )
 
-        // Contenido
+        // CONTENIDO PRINCIPAL centrado
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -77,7 +87,7 @@ fun SignUpScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Logo
+            // LOGO DE LA APLICACIÓN
             Image(
                 painter = painterResource(id = R.drawable.f_png),
                 contentDescription = "Logo App",
@@ -87,16 +97,17 @@ fun SignUpScreen(
                 contentScale = ContentScale.Fit
             )
 
+            // TÍTULO DE REGISTRO
             Text(
                 text = "CREATE ACCOUNT",
                 fontWeight = FontWeight.Bold,
                 fontSize = 32.sp,
-                color = Color(0xFF355E37)
+                color = Color(0xFF355E37) // Verde principal de Fuudy
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Campo de nombre
+            // CAMPO DE NOMBRE (único de SignUpScreen)
             OutlinedTextField(
                 value = displayName,
                 onValueChange = { displayName = it },
@@ -107,15 +118,15 @@ fun SignUpScreen(
                     .fillMaxWidth(0.8f)
                     .clip(RoundedCornerShape(50.dp)),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = Color(0xFF355E37),
-                    unfocusedBorderColor = Color(0xFF355E37).copy(alpha = 0.5f),
-                    containerColor = Color.White.copy(alpha = 0.3f)
+                    focusedBorderColor = Color(0xFF355E37), // Borde verde cuando está enfocado
+                    unfocusedBorderColor = Color(0xFF355E37).copy(alpha = 0.5f), // Borde verde claro
+                    containerColor = Color.White.copy(alpha = 0.3f) // Fondo semitransparente
                 )
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Campo de email
+            // CAMPO DE EMAIL
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
@@ -134,12 +145,12 @@ fun SignUpScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Campo de contraseña
+            // CAMPO DE CONTRASEÑA
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
                 label = { Text("Password") },
-                visualTransformation = PasswordVisualTransformation(),
+                visualTransformation = PasswordVisualTransformation(), // Oculta texto con puntos
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 modifier = Modifier
@@ -154,10 +165,12 @@ fun SignUpScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Botón de registro
+            // BOTÓN DE REGISTRO
             Button(
                 onClick = {
+                    // Validación básica: ambos campos obligatorios deben tener contenido
                     if (email.isNotEmpty() && password.isNotEmpty()) {
+                        // Llamar función de registro en AuthViewModel
                         authViewModel.register(email, password, displayName)
                     }
                 },
@@ -167,20 +180,23 @@ fun SignUpScreen(
                     .height(50.dp)
                     .clip(RoundedCornerShape(50.dp))
             ) {
+                // CONTENIDO CONDICIONAL: Loading spinner o texto
                 if (authViewModel.authState == AuthViewModel.AuthState.Loading) {
+                    // Muestra spinner mientras procesa el registro
                     CircularProgressIndicator(
                         color = Color.White,
                         modifier = Modifier.size(20.dp),
                         strokeWidth = 2.dp
                     )
                 } else {
+                    // Texto normal del botón
                     Text("Sign Up", fontSize = 16.sp)
                 }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Error mensaje
+            // MENSAJE DE ERROR (solo visible si hay error)
             if (authViewModel.authState is AuthViewModel.AuthState.Error) {
                 Text(
                     text = (authViewModel.authState as AuthViewModel.AuthState.Error).message,
@@ -191,7 +207,7 @@ fun SignUpScreen(
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
-            // Enlace para iniciar sesión
+            // ENLACE PARA INICIAR SESIÓN
             TextButton(onClick = { navController.navigate("login") }) {
                 Text("Already have an account? Log in", color = Color.White)
             }

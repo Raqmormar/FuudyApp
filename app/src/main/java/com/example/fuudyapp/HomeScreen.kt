@@ -54,13 +54,17 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.fuudyapp.R
 
+/**
+ * Pantalla principal de la aplicación Fuudy
+ * Muestra búsqueda, recetas populares y navegación principal
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavHostController) {
-    // Define los colores principales de la aplicación
+    // Color principal de la aplicación (verde)
     val primaryGreen = Color(0xFF355E37)
 
-    // Define la fuente Epilogue
+    // Fuente personalizada Epilogue Bold para títulos
     val epilogueBold = FontFamily(
         Font(R.font.epilogue_bold)
     )
@@ -68,52 +72,55 @@ fun HomeScreen(navController: NavHostController) {
     // Estado para el campo de búsqueda
     var searchQuery by remember { mutableStateOf("") }
 
-    // Estado para el desplazamiento
+    // Estado para controlar el scroll vertical de la pantalla
     val scrollState = rememberScrollState()
 
-    // Obtiene la altura de la pantalla para calcular el espacio
+    // Obtiene las dimensiones de la pantalla para cálculos de layout
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
 
+    // Contenedor principal con imagen de fondo
     Box(
         modifier = Modifier
             .fillMaxSize()
     ) {
-        // Background
+        // Imagen de fondo que cubre toda la pantalla
         Image(
             painter = painterResource(id = R.drawable.bk_home),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
+            contentScale = ContentScale.Crop // Recorta para mantener proporción
         )
 
+        // Contenido principal scrolleable
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
                 .verticalScroll(scrollState)
         ) {
-            // Top bar con logo y botón de añadir receta
+            // BARRA SUPERIOR con logo y botón agregar
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 16.dp, bottom = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.SpaceBetween, // Espacia elementos en extremos
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Logo que funciona como botón home
+                // Logo clickeable que funciona como botón home
                 Image(
                     painter = painterResource(id = R.drawable.fuudy_wb_1),
                     contentDescription = "Go to Home",
                     modifier = Modifier
                         .size(40.dp)
                         .clickable {
+                            // Navega a home y limpia el stack de navegación
                             navController.navigate("home") {
                                 popUpTo("home") { inclusive = true }
                             }
                         }
                 )
 
-                // Botón "+" para añadir receta
+                // Botón flotante circular para agregar receta
                 FloatingActionButton(
                     onClick = { navController.navigate("add_recipe") },
                     containerColor = primaryGreen,
@@ -131,6 +138,7 @@ fun HomeScreen(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(48.dp))
 
+            // TÍTULO PRINCIPAL con fuente personalizada
             Text(
                 text = "What do you want\nto cook today?",
                 style = TextStyle(
@@ -145,18 +153,18 @@ fun HomeScreen(navController: NavHostController) {
                     .padding(bottom = 12.dp)
             )
 
-            // Campo de búsqueda con texto "eat healthy..." superpuesto
+            // CAMPO DE BÚSQUEDA
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 4.dp)
             ) {
-                // Campo de búsqueda
                 TextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
                     placeholder = { Text("Search") },
                     leadingIcon = {
+                        // Icono de lupa al inicio del campo
                         Icon(
                             imageVector = Icons.Outlined.Search,
                             contentDescription = "Search",
@@ -165,23 +173,24 @@ fun HomeScreen(navController: NavHostController) {
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(50.dp)),
+                        .clip(RoundedCornerShape(50.dp)), // Bordes completamente redondeados
                     shape = RoundedCornerShape(50.dp),
                     colors = TextFieldDefaults.textFieldColors(
-                        focusedIndicatorColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent, // Sin línea inferior
                         unfocusedIndicatorColor = Color.Transparent,
-                        containerColor = Color.White.copy(alpha = 0.8f)
+                        containerColor = Color.White.copy(alpha = 0.8f) // Fondo blanco semitransparente
                     )
                 )
             }
 
-            // Espacio calculado dinámicamente para empujar las tarjetas hacia abajo
+            // ESPACIADO DINÁMICO para empujar contenido hacia abajo
+            // Calcula espacio disponible basado en altura de pantalla
             val contentHeight = 330.dp
             val navBarHeight = 56.dp
-            val spacerHeight = screenHeight - contentHeight - navBarHeight - 400.dp // Ajustado para las tarjetas más altas
+            val spacerHeight = screenHeight - contentHeight - navBarHeight - 400.dp
             Spacer(modifier = Modifier.height(if (spacerHeight > 0.dp) spacerHeight else 100.dp))
 
-            // Popular recipes section
+            // SECCIÓN DE RECETAS POPULARES
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -189,6 +198,7 @@ fun HomeScreen(navController: NavHostController) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // Título de la sección
                 Text(
                     text = "Popular recipes",
                     style = TextStyle(
@@ -198,6 +208,7 @@ fun HomeScreen(navController: NavHostController) {
                     )
                 )
 
+                // Enlace "Ver todas" clickeable
                 Text(
                     text = "View all",
                     style = TextStyle(
@@ -210,41 +221,44 @@ fun HomeScreen(navController: NavHostController) {
                 )
             }
 
+            // TARJETAS DE RECETAS POPULARES
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 16.dp),
-                horizontalArrangement = Arrangement.SpaceAround, // Para centrar las tarjetas
+                horizontalArrangement = Arrangement.SpaceAround, // Centra las tarjetas
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
+                // Primera tarjeta de receta (Poke Bowl)
                 RecipeCard(
                     imageRes = R.drawable.pok_,
-                    title = "",  // Sin texto
+                    title = "",  // Sin texto superpuesto
                     modifier = Modifier
-                        .width(213.dp)  // Ancho exacto de 213dp
-                        .height(359.dp) // Altura exacta de 359dp
+                        .width(213.dp)  // Ancho fijo de 213dp
+                        .height(359.dp) // Altura fija de 359dp
                         .clickable {
                             navController.navigate("recipe_list")
                         }
                 )
+
+                // Segunda tarjeta de receta (Pancakes)
                 RecipeCard(
                     imageRes = R.drawable.pancake,
-                    title = "",  // Sin texto
+                    title = "",  // Sin texto superpuesto
                     modifier = Modifier
-                        .width(213.dp)  // Ancho exacto de 213dp
-                        .height(359.dp) // Altura exacta de 359dp
+                        .width(213.dp)  // Ancho fijo de 213dp
+                        .height(359.dp) // Altura fija de 359dp
                         .clickable {
                             navController.navigate("recipe_list")
                         }
                 )
             }
 
-            // Espacio adicional mínimo para evitar que toque directamente la barra
+            // Espacio adicional para evitar que la barra de navegación tape contenido
             Spacer(modifier = Modifier.height(16.dp))
         }
 
-        // Bottom Navigation Bar
+        // BARRA DE NAVEGACIÓN INFERIOR (flotante)
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -253,12 +267,16 @@ fun HomeScreen(navController: NavHostController) {
             BottomNavBar(
                 navController = navController,
                 primaryGreen = primaryGreen,
-                currentRoute = "home"
+                currentRoute = "home" // Marca esta pantalla como activa
             )
         }
     }
 }
 
+/**
+ * Componente de tarjeta individual para mostrar recetas
+ * Muestra solo la imagen con esquinas redondeadas
+ */
 @Composable
 private fun RecipeCard(
     imageRes: Int,
@@ -269,21 +287,25 @@ private fun RecipeCard(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp)),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 4.dp
+            defaultElevation = 4.dp // Sombra sutil
         ),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         )
     ) {
+        // Imagen que llena toda la tarjeta
         Image(
             painter = painterResource(id = imageRes),
             contentDescription = title,
             modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
+            contentScale = ContentScale.Crop // Recorta para ajustar sin deformar
         )
     }
 }
 
+/**
+ * Barra de navegación inferior con 4 pestañas principales
+ */
 @Composable
 private fun BottomNavBar(
     navController: NavHostController,
@@ -293,7 +315,7 @@ private fun BottomNavBar(
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 8.dp
+            defaultElevation = 8.dp // Sombra pronunciada para efecto flotante
         ),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
@@ -304,9 +326,10 @@ private fun BottomNavBar(
                 .fillMaxWidth()
                 .height(56.dp)
                 .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.SpaceAround,
+            horizontalArrangement = Arrangement.SpaceAround, // Distribuye iconos uniformemente
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Pestaña Home (activa en esta pantalla)
             Icon(
                 imageVector = Icons.Outlined.Home,
                 contentDescription = "Home",
@@ -320,6 +343,7 @@ private fun BottomNavBar(
                     }
             )
 
+            // Pestaña Search/Recipe List
             Icon(
                 imageVector = Icons.Outlined.Search,
                 contentDescription = "Search",
@@ -329,6 +353,7 @@ private fun BottomNavBar(
                     .clickable { navController.navigate("recipe_list") }
             )
 
+            // Pestaña Profile
             Icon(
                 imageVector = Icons.Outlined.Person,
                 contentDescription = "Profile",
@@ -338,10 +363,11 @@ private fun BottomNavBar(
                     .clickable { navController.navigate("profile") }
             )
 
+            // Pestaña Favorites
             Icon(
                 imageVector = Icons.Outlined.FavoriteBorder,
                 contentDescription = "Favorites",
-                tint = Color.Gray,
+                tint = Color.Gray, // Siempre gris porque no está activa
                 modifier = Modifier
                     .size(28.dp)
                     .clickable { navController.navigate("favorites") }

@@ -496,7 +496,6 @@ private fun ModernRecipeCard(
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Reemplazar todo el bloque del icono por esto:
                         Text(
                             text = "⏱️", // Emoji de reloj
                             style = TextStyle(

@@ -31,6 +31,12 @@ import com.example.fuudyapp.models.Recipe
 import com.example.fuudyapp.ui.components.ImagePicker
 import com.example.fuudyapp.ui.viewmodel.RecipeViewModel
 
+/**
+ * Pantalla para agregar o editar recetas
+ * @param navController - Control de navegación
+ * @param recipeId - ID de receta (null para nueva receta)
+ * @param recipeViewModel - ViewModel para gestionar datos de recetas
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEditRecipeScreen(
@@ -38,14 +44,16 @@ fun AddEditRecipeScreen(
     recipeId: String? = null,
     recipeViewModel: RecipeViewModel = viewModel()
 ) {
+    // Paleta de colores de la aplicación
     val primaryGreen = Color(0xFF355E37)
     val lightGray = Color(0xFFF5F5F5)
     val backgroundColor = Color(0xFFF8F7F5)
     val cardBackground = Color.White
 
+    // Estado de scroll vertical para toda la pantalla
     val scrollState = rememberScrollState()
 
-    // Estados para los campos
+    // Estados para todos los campos del formulario
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("Breakfast") }
@@ -54,17 +62,15 @@ fun AddEditRecipeScreen(
     var ingredientsText by remember { mutableStateOf("") }
     var instructionsText by remember { mutableStateOf("") }
 
-    // Estado para la imagen
+    // Estados para manejo de imágenes
     var imageUrl by remember { mutableStateOf("") }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
-    // Categorías disponibles
+    // Opciones predefinidas para dropdowns y chips
     val categories = listOf("Breakfast", "Lunch", "Dinner", "Desserts", "Healthy")
-
-    // Dificultades disponibles
     val difficulties = listOf("Easy", "Medium", "Hard")
 
-    // Si tenemos un ID de receta, cargamos los datos
+    // Carga datos de receta existente si es modo edición
     LaunchedEffect(recipeId) {
         if (recipeId != null) {
             recipeViewModel.getRecipeById(recipeId) { recipe ->
@@ -82,22 +88,23 @@ fun AddEditRecipeScreen(
         }
     }
 
+    // Contenedor principal con imagen de fondo
     Box(modifier = Modifier.fillMaxSize()) {
-        // Imagen de fondo
+        // Imagen de fondo fija
         Image(
             painter = painterResource(id = R.drawable.bck),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop // Usa Crop para mantener la relación de aspecto
+            contentScale = ContentScale.Crop
         )
 
-        // Contenido original sin modificar
+        // Scaffold con barra superior y contenido
         Scaffold(
-            containerColor = Color.Transparent, // Hace el fondo transparente para ver la imagen
+            containerColor = Color.Transparent, // Transparente para ver fondo
             topBar = {
                 TopAppBar(
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = backgroundColor.copy(alpha = 0.85f) // Semi-transparente para ver parte de la imagen
+                        containerColor = backgroundColor.copy(alpha = 0.85f) // Semi-transparente
                     ),
                     title = {
                         Text(
@@ -107,6 +114,7 @@ fun AddEditRecipeScreen(
                         )
                     },
                     navigationIcon = {
+                        // Botón de retroceso
                         IconButton(onClick = { navController.navigateUp() }) {
                             Icon(
                                 imageVector = Icons.Default.ArrowBack,
@@ -116,8 +124,10 @@ fun AddEditRecipeScreen(
                         }
                     },
                     actions = {
+                        // Botón de guardar en la barra superior
                         IconButton(
                             onClick = {
+                                // Procesa y guarda la receta
                                 val ingredients = ingredientsText
                                     .split("\n")
                                     .filter { it.isNotBlank() }
@@ -140,6 +150,7 @@ fun AddEditRecipeScreen(
                                     difficulty = difficulty
                                 )
 
+                                // Decide si agregar nueva receta o actualizar existente
                                 if (recipeId == null) {
                                     recipeViewModel.addRecipeWithImage(recipe, selectedImageUri) { success ->
                                         if (success) {
@@ -168,14 +179,15 @@ fun AddEditRecipeScreen(
                 )
             }
         ) { paddingValues ->
+            // Contenido principal scrolleable
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
                     .verticalScroll(scrollState)
-                    .background(Color.Transparent) // El Column es transparente para ver el fondo
+                    .background(Color.Transparent)
             ) {
-                // Selector de imagen
+                // Selector de imagen de la receta
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -187,7 +199,7 @@ fun AddEditRecipeScreen(
                     )
                 }
 
-                // Contenedor principal con tarjeta
+                // Tarjeta principal con información básica
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -201,7 +213,7 @@ fun AddEditRecipeScreen(
                             .fillMaxWidth()
                             .padding(20.dp)
                     ) {
-                        // Nombre de la receta
+                        // Campo: Nombre de la receta
                         Text(
                             text = "Recipe Name",
                             style = MaterialTheme.typography.labelLarge,
@@ -230,7 +242,7 @@ fun AddEditRecipeScreen(
 
                         Spacer(modifier = Modifier.height(20.dp))
 
-                        // Descripción
+                        // Campo: Descripción
                         Text(
                             text = "Description",
                             style = MaterialTheme.typography.labelLarge,
@@ -260,12 +272,12 @@ fun AddEditRecipeScreen(
 
                         Spacer(modifier = Modifier.height(20.dp))
 
-                        // Fila para tiempo y dificultad
+                        // Fila con tiempo de preparación y dificultad
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            // Tiempo de preparación
+                            // Campo: Tiempo de preparación
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = "Prep Time",
@@ -291,7 +303,7 @@ fun AddEditRecipeScreen(
                                 )
                             }
 
-                            // Dificultad
+                            // Campo: Dificultad (Dropdown)
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = "Difficulty",
@@ -324,6 +336,7 @@ fun AddEditRecipeScreen(
                                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) }
                                     )
 
+                                    // Menú desplegable con opciones de dificultad
                                     ExposedDropdownMenu(
                                         expanded = expanded,
                                         onDismissRequest = { expanded = false }
@@ -344,7 +357,7 @@ fun AddEditRecipeScreen(
 
                         Spacer(modifier = Modifier.height(20.dp))
 
-                        // Categoría
+                        // Campo: Categoría (Chips horizontales)
                         Text(
                             text = "Category",
                             style = MaterialTheme.typography.labelLarge,
@@ -384,7 +397,7 @@ fun AddEditRecipeScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Ingredientes
+                // Tarjeta: Ingredientes
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -425,7 +438,7 @@ fun AddEditRecipeScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Instrucciones
+                // Tarjeta: Instrucciones
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -463,7 +476,7 @@ fun AddEditRecipeScreen(
                     }
                 }
 
-                // Indicador de progreso de carga
+                // Indicador de progreso cuando se está subiendo
                 if (recipeViewModel.isUploading) {
                     Card(
                         modifier = Modifier
@@ -494,7 +507,7 @@ fun AddEditRecipeScreen(
                     }
                 }
 
-                // Mensaje de error
+                // Mensaje de error si existe
                 recipeViewModel.errorMessage?.let { error ->
                     Card(
                         modifier = Modifier
@@ -512,7 +525,7 @@ fun AddEditRecipeScreen(
                     }
                 }
 
-                // Botón de guardar flotante
+                // Botón principal de guardar (parte inferior)
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -520,6 +533,7 @@ fun AddEditRecipeScreen(
                 ) {
                     Button(
                         onClick = {
+                            // Lógica duplicada para botón inferior
                             val ingredients = ingredientsText
                                 .split("\n")
                                 .filter { it.isNotBlank() }

@@ -24,14 +24,21 @@ import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 
+/**
+ * Componente para seleccionar imágenes desde la galería
+ * @param currentImageUrl - URL de imagen existente (para edición)
+ * @param onImageSelected - Callback cuando se selecciona/elimina imagen
+ */
 @Composable
 fun ImagePicker(
     currentImageUrl: String = "",
     onImageSelected: (Uri?) -> Unit
 ) {
+    // Estado para almacenar URI de imagen seleccionada
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     val context = LocalContext.current
 
+    // Launcher para abrir galería y seleccionar imagen
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -39,30 +46,33 @@ fun ImagePicker(
         onImageSelected(uri)
     }
 
+    // Contenedor principal clickeable
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(200.dp)
             .clip(RoundedCornerShape(8.dp))
             .background(Color.LightGray.copy(alpha = 0.3f))
-            .clickable { galleryLauncher.launch("image/*") },
+            .clickable { galleryLauncher.launch("image/*") }, // Abre galería solo para imágenes
         contentAlignment = Alignment.Center
     ) {
+        // Si hay imagen seleccionada o URL existente
         if (selectedImageUri != null || currentImageUrl.isNotEmpty()) {
-            // Mostrar imagen seleccionada o la existente
+            // Contenedor para imagen y botón eliminar
             Box(modifier = Modifier.fillMaxSize()) {
+                // Imagen principal
                 Image(
                     painter = rememberAsyncImagePainter(
                         model = ImageRequest.Builder(context)
-                            .data(selectedImageUri ?: currentImageUrl)
+                            .data(selectedImageUri ?: currentImageUrl) // Prioriza imagen seleccionada
                             .build()
                     ),
                     contentDescription = "Selected Image",
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Crop // Recorta manteniendo proporción
                 )
 
-                // Botón para eliminar la imagen
+                // Botón eliminar (esquina superior derecha)
                 IconButton(
                     onClick = {
                         selectedImageUri = null
@@ -83,7 +93,7 @@ fun ImagePicker(
                 }
             }
         } else {
-            // Mostrar indicación para seleccionar imagen
+            // Estado vacío: mostrar indicadores para agregar imagen
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center

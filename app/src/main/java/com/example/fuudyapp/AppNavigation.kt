@@ -1,6 +1,5 @@
 package com.example.fuudyapp
 
-import com.example.fuudyapp.SignUpScreen
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -22,7 +21,7 @@ fun AppNavigation() {
         composable("favorites") {
             FavoritesScreen(navController) }
 
-        // Nueva ruta para la pantalla de detalle de receta
+        // Ruta para la pantalla de detalle de receta
         composable(
             route = "recipe_detail/{recipeId}",
             arguments = listOf(

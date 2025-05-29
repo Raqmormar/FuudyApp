@@ -3,7 +3,6 @@ package com.example.fuudyapp.ui.components
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -21,8 +20,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import coil.compose.rememberAsyncImagePainter
-import coil.request.ImageRequest
+import coil.compose.AsyncImage
 
 /**
  * Componente para seleccionar imágenes desde la galería
@@ -46,30 +44,30 @@ fun ImagePicker(
         onImageSelected(uri)
     }
 
+    // Colores de tu app
+    val primaryGreen = Color(0xFF355E37)
+    val lightGray = Color(0xFFF5F5F5)
+
     // Contenedor principal clickeable
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(200.dp)
             .clip(RoundedCornerShape(8.dp))
-            .background(Color.LightGray.copy(alpha = 0.3f))
-            .clickable { galleryLauncher.launch("image/*") }, // Abre galería solo para imágenes
+            .background(lightGray)
+            .clickable { galleryLauncher.launch("*/*") },
         contentAlignment = Alignment.Center
     ) {
         // Si hay imagen seleccionada o URL existente
         if (selectedImageUri != null || currentImageUrl.isNotEmpty()) {
             // Contenedor para imagen y botón eliminar
             Box(modifier = Modifier.fillMaxSize()) {
-                // Imagen principal
-                Image(
-                    painter = rememberAsyncImagePainter(
-                        model = ImageRequest.Builder(context)
-                            .data(selectedImageUri ?: currentImageUrl) // Prioriza imagen seleccionada
-                            .build()
-                    ),
+                // AsyncImage simple sin placeholder ni error
+                AsyncImage(
+                    model = selectedImageUri ?: currentImageUrl,
                     contentDescription = "Selected Image",
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop // Recorta manteniendo proporción
+                    contentScale = ContentScale.Crop
                 )
 
                 // Botón eliminar (esquina superior derecha)
@@ -83,12 +81,12 @@ fun ImagePicker(
                         .padding(8.dp)
                         .size(36.dp)
                         .clip(RoundedCornerShape(50))
-                        .background(Color.White.copy(alpha = 0.7f))
+                        .background(Color.White.copy(alpha = 0.8f))
                 ) {
                     Icon(
                         imageVector = Icons.Default.Clear,
                         contentDescription = "Clear Image",
-                        tint = Color.Black
+                        tint = Color.Red.copy(alpha = 0.7f)
                     )
                 }
             }
@@ -102,15 +100,23 @@ fun ImagePicker(
                     imageVector = Icons.Default.Add,
                     contentDescription = "Add Image",
                     modifier = Modifier.size(40.dp),
-                    tint = Color.DarkGray
+                    tint = primaryGreen.copy(alpha = 0.7f)
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "Click to add an image",
-                    color = Color.DarkGray,
-                    textAlign = TextAlign.Center
+                    text = "Tap to add recipe image",
+                    color = primaryGreen.copy(alpha = 0.7f),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+
+                Text(
+                    text = "From gallery",
+                    color = primaryGreen.copy(alpha = 0.5f),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
         }

@@ -125,7 +125,7 @@ fun ProfileScreen(navController: NavHostController) {
             // OPCIONES DEL PERFIL (mis recetas, favoritos, etc.)
             ProfileOptions(
                 primaryGreen = primaryGreen,
-                onMyRecipesClick = { /* Navegar a mis recetas */ },
+                onMyRecipesClick = { navController.navigate("my_recipes") }, // ← CAMBIO AQUÍ
                 onFavoritesClick = { navController.navigate("favorites") },
                 onDietaryPreferencesClick = { /* Navegar a preferencias dietéticas */ }
             )

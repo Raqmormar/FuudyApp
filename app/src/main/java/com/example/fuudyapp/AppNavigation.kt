@@ -12,7 +12,6 @@ import com.example.fuudyapp.ui.theme.HomeScreen
  * Componente principal de navegación de la aplicación Fuudy
  * Define todas las rutas y pantallas disponibles en la app
  */
-
 @Composable
 fun AppNavigation() {
     // Crea y mantiene el controlador de navegación para toda la app
@@ -26,8 +25,10 @@ fun AppNavigation() {
         composable("recipe_list") { RecipeListScreen(navController) }
         composable("profile") { ProfileScreen(navController) }
         composable("add_recipe") { AddEditRecipeScreen(navController) }
-        composable("favorites") {
-            FavoritesScreen(navController) }
+        composable("favorites") { FavoritesScreen(navController) }
+
+        // ✅ NUEVA PANTALLA: Mis Recetas
+        composable("my_recipes") { MyRecipesScreen(navController) }
 
         // Ruta para la pantalla de detalle de receta
         composable(
@@ -38,17 +39,12 @@ fun AppNavigation() {
                     defaultValue = 1
                 }
             )
-
         ) { backStackEntry ->
             val recipeId = backStackEntry.arguments?.getInt("recipeId")
             RecipeDetailScreen(navController = navController, recipeId = recipeId)
         }
 
-        // Rutas para añadir/editar recetas
-        composable("add_recipe") {
-            AddEditRecipeScreen(navController = navController)
-        }
-
+        // Rutas para añadir/editar recetas (eliminada duplicación)
         composable(
             route = "edit_recipe/{recipeId}",
             arguments = listOf(

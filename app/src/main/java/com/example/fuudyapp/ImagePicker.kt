@@ -29,19 +29,17 @@ import coil.compose.AsyncImage
  */
 @Composable
 fun ImagePicker(
+    selectedImageUri: Uri? = null, // Cambiado: ahora recibe el URI como parámetro
     currentImageUrl: String = "",
     onImageSelected: (Uri?) -> Unit
 ) {
-    // Estado para almacenar URI de imagen seleccionada
-    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     val context = LocalContext.current
 
     // Launcher para abrir galería y seleccionar imagen
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        selectedImageUri = uri
-        onImageSelected(uri)
+        onImageSelected(uri) // Directamente notifica al padre
     }
 
     // Colores de tu app
@@ -55,7 +53,7 @@ fun ImagePicker(
             .height(200.dp)
             .clip(RoundedCornerShape(8.dp))
             .background(lightGray)
-            .clickable { galleryLauncher.launch("*/*") },
+            .clickable { galleryLauncher.launch("image/*") }, // Cambiado a solo imágenes
         contentAlignment = Alignment.Center
     ) {
         // Si hay imagen seleccionada o URL existente
@@ -73,8 +71,7 @@ fun ImagePicker(
                 // Botón eliminar (esquina superior derecha)
                 IconButton(
                     onClick = {
-                        selectedImageUri = null
-                        onImageSelected(null)
+                        onImageSelected(null) // Notifica al padre que se eliminó la imagen
                     },
                     modifier = Modifier
                         .align(Alignment.TopEnd)

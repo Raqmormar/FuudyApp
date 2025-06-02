@@ -194,6 +194,7 @@ fun AddEditRecipeScreen(
                         .padding(16.dp)
                 ) {
                     ImagePicker(
+                        selectedImageUri = selectedImageUri,
                         currentImageUrl = imageUrl,
                         onImageSelected = { selectedImageUri = it }
                     )
